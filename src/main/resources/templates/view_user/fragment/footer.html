@@ -1,0 +1,151 @@
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+
+<script>
+    var pageIndex = 1;
+    var totalPage = 0;
+    function searchByDto(){
+        var categoryLst = [];
+        $('.categoryy:checkbox:checked').each(function () {
+            categoryLst.push($(this).val());
+        });
+        var starLst = [];
+        $('.star:checkbox:checked').each(function () {
+            starLst.push($(this).val());
+        });
+        var bodyData = {
+            categoryId : null,
+            fromDate : null,
+            toDate : null,
+            rating : null,
+            pageIndex : null,
+            pageSize : null,
+            lstCategory: null,
+            lstStar: null,
+            textSearch : null,
+            sort : null
+        };
+        bodyData.categoryId = $("#categoryId").val();
+        bodyData.fromDate =$("#fromDate").val();
+        bodyData.toDate =$("#toDate").val();
+        bodyData.rating =$("#rating").val();
+        bodyData.pageIndex =pageIndex;
+        bodyData.pageSize =6;
+        bodyData.lstCategory =categoryLst;
+        bodyData.lstStar =starLst;
+        bodyData.textSearch = $("#search").val();
+        bodyData.sort = $("#sort").val();
+        $.ajax({
+            url: '/product/search_report_by_page',
+            type: 'POST',
+            data: bodyData,
+            success: function (result) {
+                console.log(result);
+                pageIndex = result.number + 1;
+                totalPage = result.totalPages;
+                $("#tbodzy").empty();
+                $("#res").empty();
+                $("#res").append(`
+                     Showing ${result.content.length} results
+                `);
+                result.content.map(p =>
+                    $('#tbodzy').append(`
+                            <div class="col-lg-4 col-md-6 col-sm-10 offset-md-0 offset-sm-1">
+                                <div class="card">
+                                    <a href="/product/product_detail_user/${p.id}">
+                                        <img class="card-img-top" src="/uploads/${p.image}">
+                                    </a>
+                                    <div class="card-body">
+                                        <h5><b>${p.name}</b> </h5>
+                                        <div class="d-flex flex-row my-2">
+                                            <div class="text-muted">$${p.price}</div>
+                                            <div class="ml-auto">
+                                                <button class="border rounded bg-white sign"><span class="fa fa-plus" id="orange"></span></button>
+                                                <span class="px-sm-1">1 loaf</span>
+                                                <button class="border rounded bg-white sign"><span class="fa fa-minus" id="orange"></span></button>
+                                            </div>
+                                        </div>
+                                        <button class="btn w-100 rounded my-2"value="${p.id}" onclick="add_toCart(this.value)">Add to cart</button>
+                                    </div>
+                                </div>
+                            </div>
+                            `)
+                );
+                $("#pagination_z").empty();
+                $("#pagination_z").append(`
+
+                    <li class="page-item mr-1">
+                        <button onclick="prevPage()" style="width: 90px !important;" class="btn w-100 rounded my-2" href="#">Previous</button>
+                    </li>
+                `);
+                for(var i=1;i <= result.totalPages; i++){
+                    if(i == result.number + 1){
+                        $("#pagination_z").append(`
+                          <li class="page-item mr-1">
+                                <button onclick="redirectPage(this.value)" value="${i}" class="btn w-100 rounded my-2 active-custom" href="#">${i}</button>
+                            </li>
+                    `);
+                    }
+                    else{
+                        $("#pagination_z").append(`
+                      <li class="page-item mr-1">
+                            <button onclick="redirectPage(this.value)" value="${i}" class="btn w-100 rounded my-2" href="#">${i}</button>
+                        </li>
+                    `);
+                    }
+
+                }
+                $("#pagination_z").append(`
+                    <li class="page-item">
+                        <button onclick="nextPage()" style="width: 90px !important;" class="btn w-100 rounded my-2" href="#">Next</button>
+                    </li>
+                `);
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+
+    }
+    function add_toCart(value){
+        $.ajax({
+            url: '/product/add_cart/'+value,
+            type: 'POST',
+            data:null,
+            success: function (result) {
+                console.log(result);
+                if(result == true){
+                    alert("Thêm vào giỏ hàng thành công!")
+                }
+            },
+            error: function (error) {
+                console.log(error)
+            }
+        });
+    }
+
+    function redirectPage(value){
+        pageIndex = value;
+        searchByDto();
+    }
+    function prevPage(){
+        if(pageIndex == 1)
+            return;
+        pageIndex = pageIndex - 1;
+        searchByDto();
+    }
+    function nextPage(){
+        if(pageIndex == totalPage)
+            return;
+        pageIndex = pageIndex + 1;
+        searchByDto();
+    }
+    $(document).ready(function (){
+        searchByDto();
+    })
+</script>
+<script src="https://code.jquery.com/jquery-3.5.1.js" type="text/javascript"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+</body>
+</html>
